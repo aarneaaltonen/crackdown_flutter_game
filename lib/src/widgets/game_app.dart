@@ -1,6 +1,7 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 
 import '../crackdown_game.dart';
 import '../config.dart';
@@ -24,7 +25,7 @@ class _GameAppState extends State<GameApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -62,16 +63,11 @@ class _GameAppState extends State<GameApp> {
                           PlayState.welcome.name: (context, game) =>
                               const OverlayScreen(
                                 title: 'TAP TO PLAY',
-                                subtitle: 'Use arrow keys or swipe',
+                                subtitle: 'Move the eggs in the right basket',
                               ),
                           PlayState.gameOver.name: (context, game) =>
                               const OverlayScreen(
                                 title: 'G A M E   O V E R',
-                                subtitle: 'Tap to Play Again',
-                              ),
-                          PlayState.won.name: (context, game) =>
-                              const OverlayScreen(
-                                title: 'Y O U   W O N ! ! !',
                                 subtitle: 'Tap to Play Again',
                               ),
                         },

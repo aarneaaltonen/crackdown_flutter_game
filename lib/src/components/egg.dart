@@ -6,7 +6,6 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
 import '../crackdown_game.dart';
-import 'play_area.dart';
 
 class Egg extends PositionComponent
     with CollisionCallbacks, HasGameReference<CrackDown>, DragCallbacks {
@@ -14,6 +13,7 @@ class Egg extends PositionComponent
     required this.velocity,
     required super.position,
     required this.baseRadius,
+    required this.eggColor,
   }) : super(
           anchor: Anchor.center,
           size: Vector2.all(baseRadius * 2),
@@ -23,6 +23,7 @@ class Egg extends PositionComponent
   final Vector2 velocity;
   final double baseRadius;
   Vector2? _dragStartPosition;
+  final String eggColor;
 
   double _time = 0;
   final double _wobbleFrequency = 5;
@@ -124,10 +125,17 @@ class Egg extends PositionComponent
       height: height,
     );
 
+//lighter side of egg
     final paintLight = Paint()
       ..color = Color.lerp(
-        const Color.fromARGB(255, 207, 115, 166), // Start color
-        const Color.fromARGB(255, 147, 55, 106), // Damaged color
+        // Base colors
+        eggColor == 'blue'
+            ? const Color.fromARGB(255, 115, 166, 207) // Blue light
+            : const Color.fromARGB(255, 207, 115, 166), // Pink light
+        // Heavily damaged colors (darker)
+        eggColor == 'blue'
+            ? const Color.fromARGB(255, 35, 76, 107) // Blue very damaged
+            : const Color.fromARGB(255, 107, 35, 76), // Pink very damaged
         _crackLevel / 4,
       )!
       ..style = PaintingStyle.fill;
@@ -154,8 +162,14 @@ class Egg extends PositionComponent
 
     final paintDark = Paint()
       ..color = Color.lerp(
-        const Color.fromARGB(255, 177, 85, 136), // Start color
-        const Color.fromARGB(255, 117, 25, 76), // Damaged color
+        // Base colors
+        eggColor == 'blue'
+            ? const Color.fromARGB(255, 85, 136, 177) // Blue dark
+            : const Color.fromARGB(255, 177, 85, 136), // Pink dark
+        // Heavily damaged colors (darker)
+        eggColor == 'blue'
+            ? const Color.fromARGB(255, 15, 46, 77) // Blue very damaged dark
+            : const Color.fromARGB(255, 77, 15, 46), // Pink very damaged dark
         _crackLevel / 4,
       )!
       ..style = PaintingStyle.fill;

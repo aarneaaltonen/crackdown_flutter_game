@@ -35,11 +35,11 @@ class CrackDown extends FlameGame
       case PlayState.welcome:
       case PlayState.gameOver:
       case PlayState.won:
-      // overlays.add(playState.name);
+        overlays.add(playState.name);
       case PlayState.playing:
-      // overlays.remove(PlayState.welcome.name);
-      // overlays.remove(PlayState.gameOver.name);
-      // overlays.remove(PlayState.won.name);
+        overlays.remove(PlayState.welcome.name);
+        overlays.remove(PlayState.gameOver.name);
+        overlays.remove(PlayState.won.name);
       //add these later
     }
   }
@@ -58,17 +58,21 @@ class CrackDown extends FlameGame
   void startGame() {
     if (playState == PlayState.playing) return;
     print("game started");
+    world.removeAll(world.children.query<Egg>());
     playState = PlayState.playing;
 
     world.add(
       Egg(
-        baseRadius: eggRadius, // Pass baseRadius instead of radius
+        baseRadius: eggRadius,
         position: size / 2,
-        velocity: Vector2(
-          (rand.nextDouble() - 0.5) * width,
-          height * 0.2,
-        ).normalized()
-          ..scale(height / 4),
+        velocity: Vector2((rand.nextDouble() - 0.5) * width, 200),
+      ),
+    );
+    world.add(
+      Egg(
+        baseRadius: eggRadius,
+        position: size / 2,
+        velocity: Vector2((rand.nextDouble() - 0.5) * width, 200),
       ),
     );
   }
@@ -77,6 +81,24 @@ class CrackDown extends FlameGame
   void onTap() {
     super.onTap();
     startGame();
+  }
+
+//TODO: create two pipes, that produce two types of eggs, at a increasing pace.
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (playState == PlayState.playing) {
+      if (rand.nextDouble() < 0.001) {
+        world.add(
+          Egg(
+            baseRadius: eggRadius,
+            position: Vector2(rand.nextDouble() * width, 0),
+            velocity: Vector2((rand.nextDouble() - 0.5) * width, 200),
+          ),
+        );
+      }
+    }
   }
 
   @override

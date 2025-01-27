@@ -2,13 +2,14 @@ import 'dart:math';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
 import '../crackdown_game.dart';
 import 'play_area.dart';
 
 class Egg extends PositionComponent
-    with CollisionCallbacks, HasGameReference<CrackDown> {
+    with CollisionCallbacks, HasGameReference<CrackDown>, DragCallbacks {
   Egg({
     required this.velocity,
     required super.position,
@@ -18,15 +19,55 @@ class Egg extends PositionComponent
           size: Vector2.all(baseRadius * 2),
         );
 
+  bool _isDragging = false;
   final Vector2 velocity;
   final double baseRadius;
+  Vector2? _dragStartPosition;
+
   double _time = 0;
   final double _wobbleFrequency = 5;
   final double _wobbleAmplitude = 0.2;
   double _cumulativeRotation = 0;
+  int _crackLevel = 0;
+  Vector2 oldVelocity = Vector2.zero();
 
-//TODO: create sprites for egg, or leave it as is, hard to work with 2d shapes
-//how to render cracks?
+  void increaseCrackLevel() {
+    if (_crackLevel < 4) {
+      _crackLevel++;
+    } else {
+      game.playState = PlayState.gameOver;
+    }
+  }
+
+  @override
+  bool onDragStart(DragStartEvent event) {
+    //TODO: make a basket to drop eggs, dont allow drag from basket
+    super.onDragStart(event);
+    _isDragging = true;
+    _dragStartPosition = position.clone();
+    oldVelocity = velocity.clone();
+    velocity.setValues(0, 0);
+    return true;
+  }
+
+  @override
+  bool onDragUpdate(DragUpdateEvent event) {
+    if (_isDragging) {
+      position += event.localDelta;
+    }
+    return true;
+  }
+
+  @override
+  bool onDragEnd(DragEndEvent event) {
+    //TODO: handle drag to basket
+    super.onDragEnd(event);
+    _isDragging = false;
+    velocity.setFrom(oldVelocity);
+
+    return true;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -52,10 +93,12 @@ class Egg extends PositionComponent
     if (position.x < bounds.left || position.x > bounds.right) {
       velocity.x *= -1;
       position.x = position.x.clamp(bounds.left, bounds.right);
+      increaseCrackLevel();
     }
     if (position.y < bounds.top || position.y > bounds.bottom) {
       velocity.y *= -1;
       position.y = position.y.clamp(bounds.top, bounds.bottom);
+      increaseCrackLevel();
     }
   }
 
@@ -82,8 +125,13 @@ class Egg extends PositionComponent
     );
 
     final paintLight = Paint()
-      ..color = const Color.fromARGB(255, 207, 115, 166)
+      ..color = Color.lerp(
+        const Color.fromARGB(255, 207, 115, 166), // Start color
+        const Color.fromARGB(255, 147, 55, 106), // Damaged color
+        _crackLevel / 4,
+      )!
       ..style = PaintingStyle.fill;
+
     canvas.drawOval(rect, paintLight);
 
     final clipPath = Path();
@@ -105,27 +153,15 @@ class Egg extends PositionComponent
     canvas.clipPath(clipPath);
 
     final paintDark = Paint()
-      ..color = const Color.fromARGB(255, 177, 85, 136)
+      ..color = Color.lerp(
+        const Color.fromARGB(255, 177, 85, 136), // Start color
+        const Color.fromARGB(255, 117, 25, 76), // Damaged color
+        _crackLevel / 4,
+      )!
       ..style = PaintingStyle.fill;
+
     canvas.drawOval(rect, paintDark);
 
     canvas.restore();
-  }
-
-  @override
-  void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
-    super.onCollisionStart(intersectionPoints, other);
-    if (other is PlayArea) {
-      if (intersectionPoints.first.y <= 0) {
-        velocity.y = -velocity.y; // Top bounce
-      } else if (intersectionPoints.first.x <= 0) {
-        velocity.x = -velocity.x; // Left bounce
-      } else if (intersectionPoints.first.x >= game.width) {
-        velocity.x = -velocity.x; // Right bounce
-      } else if (intersectionPoints.first.y >= game.height) {
-        velocity.y = -velocity.y; // Bottom bounce
-      }
-    }
   }
 }

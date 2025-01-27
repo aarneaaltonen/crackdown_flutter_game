@@ -4,14 +4,12 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../controllers/high_score_controller.dart';
-import '../crackdown_game.dart';
 
 class LevelSelectionScreen extends StatelessWidget {
   const LevelSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final CrackDown game = Get.find<CrackDown>();
     final highScoreController = Get.find<HighScoreController>();
     final DifficultyController difficultyController =
         Get.find<DifficultyController>();
@@ -37,7 +35,6 @@ class LevelSelectionScreen extends StatelessWidget {
           final difficulty = Difficulty.values[index];
           return ElevatedButton(
             onPressed: () {
-              game.difficulty = difficulty;
               difficultyController.changeDifficulty(difficulty);
               Get.back();
             },

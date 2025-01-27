@@ -32,7 +32,10 @@ class Egg extends PositionComponent
 
   double _time = 0;
   final double _wobbleFrequency = 5;
-  final double _wobbleAmplitude = 0.2;
+  final double _wobbleAmplitude =
+      Get.find<DifficultyController>().difficulty.value == Difficulty.hard
+          ? 0.5
+          : 0.2;
   double _cumulativeRotation = 0;
   int _crackLevel = 0;
   Vector2 oldVelocity = Vector2.zero();
@@ -44,12 +47,13 @@ class Egg extends PositionComponent
       }
     } else {
       game.playState = PlayState.gameOver;
+      final highScoreController = Get.find<HighScoreController>();
+      final difficultyController = Get.find<DifficultyController>();
+      final currentDifficulty = difficultyController.difficulty.value;
+      final currentScore = game.score.value;
+      highScoreController.updateHighScore(currentDifficulty, currentScore);
     }
   }
-
-  // Future<void> onLoad() async {
-  //   debugMode = true;
-  // }
 
   @override
   bool onDragStart(DragStartEvent event) {

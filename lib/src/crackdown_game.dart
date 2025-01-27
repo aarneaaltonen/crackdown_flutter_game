@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:crackdown_flutter_game/src/components/basket.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
@@ -54,16 +55,31 @@ class CrackDown extends FlameGame
     camera.viewfinder.anchor = Anchor.topLeft;
 
     world.add(PlayArea());
+    world.add(Basket(
+        position: Vector2(width / 4, height - 50),
+        width: width / 2,
+        eggColor: "pink"));
+    world.add(Basket(
+        position: Vector2(3 * width / 4, height - 50),
+        width: width / 2,
+        eggColor: "blue"));
 
     playState = PlayState.welcome;
   }
 
   void startGame() {
     if (playState == PlayState.playing) return;
-    print("game started");
     eggRate = 0.001;
     world.removeAll(world.children.query<Egg>());
+    score.value = 0;
     playState = PlayState.playing;
+
+    world.add(Egg(
+        baseRadius: eggRadius,
+        position: Vector2(width - 50, height / 2),
+        velocity: Vector2(-200 + (rand.nextDouble() - 0.5) * 100,
+            (rand.nextDouble() - 0.5) * 100),
+        eggColor: rand.nextBool() ? "pink" : "blue"));
   }
 
   @override

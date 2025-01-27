@@ -26,7 +26,7 @@ class LevelSelectionScreen extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
-        itemCount: 3, // Number of levels
+        itemCount: 3,
         itemBuilder: (context, index) {
           final level = index + 1;
           return ElevatedButton(

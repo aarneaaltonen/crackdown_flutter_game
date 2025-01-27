@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../crackdown_game.dart';
 import '../config.dart';
 import 'overlay_screen.dart';
+import 'score_card.dart';
 
 class GameApp extends StatefulWidget {
   const GameApp({super.key});
@@ -52,6 +53,7 @@ class _GameAppState extends State<GameApp> {
               child: Center(
                 child: Column(
                   children: [
+                    ScoreCard(score: game.score),
                     Expanded(
                         child: FittedBox(
                             child: SizedBox(

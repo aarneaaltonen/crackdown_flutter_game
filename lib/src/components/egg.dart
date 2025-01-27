@@ -2,10 +2,13 @@ import 'dart:math';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
+import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 
 import '../crackdown_game.dart';
+import 'basket.dart';
 
 class Egg extends PositionComponent
     with CollisionCallbacks, HasGameReference<CrackDown>, DragCallbacks {
@@ -34,11 +37,17 @@ class Egg extends PositionComponent
 
   void increaseCrackLevel() {
     if (_crackLevel < 4) {
-      _crackLevel++;
+      if (!_isDragging) {
+        _crackLevel++;
+      }
     } else {
       game.playState = PlayState.gameOver;
     }
   }
+
+  // Future<void> onLoad() async {
+  //   debugMode = true;
+  // }
 
   @override
   bool onDragStart(DragStartEvent event) {
@@ -61,11 +70,64 @@ class Egg extends PositionComponent
 
   @override
   bool onDragEnd(DragEndEvent event) {
-    //TODO: handle drag to basket
     super.onDragEnd(event);
     _isDragging = false;
-    velocity.setFrom(oldVelocity);
+    final baskets = game.children.query<World>().first.children.query<Basket>();
 
+    for (final basket in baskets) {
+      if (basket.containsPoint(position)) {
+        if (basket.eggColor == eggColor) {
+          // Correct basket - remove egg
+          game.score.value++;
+          removeFromParent();
+//+1effect
+          final scoreText = CustomTextComponent(
+            text: '+1',
+            position: position.clone(),
+            anchor: Anchor.center,
+            textRenderer: TextPaint(
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 50,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+
+          scoreText
+            ..add(
+              MoveByEffect(
+                Vector2(0, -50),
+                EffectController(
+                  duration: 0.5,
+                  curve: Curves.easeOut,
+                ),
+              ),
+            )
+            ..add(
+              OpacityEffect.fadeOut(
+                EffectController(
+                  duration: 0.5,
+                ),
+              )..onComplete = () {
+                  scoreText.removeFromParent();
+                },
+            );
+
+          game.world.add(scoreText);
+
+          return true;
+        } else {
+          // Wrong basket - increase crack level
+          game.playState = PlayState.gameOver;
+          velocity.setValues(0, 0);
+          return true;
+        }
+      }
+    }
+
+    // Not dropped in basket - resume movement
+    velocity.setFrom(oldVelocity);
     return true;
   }
 
@@ -88,7 +150,7 @@ class Egg extends PositionComponent
       baseRadius,
       baseRadius,
       game.width - 2 * baseRadius,
-      game.height - 2 * baseRadius,
+      game.height * 0.8 - 2 * baseRadius,
     );
 
     if (position.x < bounds.left || position.x > bounds.right) {
@@ -97,9 +159,11 @@ class Egg extends PositionComponent
       increaseCrackLevel();
     }
     if (position.y < bounds.top || position.y > bounds.bottom) {
-      velocity.y *= -1;
-      position.y = position.y.clamp(bounds.top, bounds.bottom);
-      increaseCrackLevel();
+      if (!_isDragging) {
+        velocity.y *= -1;
+        position.y = position.y.clamp(bounds.top, bounds.bottom);
+        increaseCrackLevel();
+      }
     }
   }
 
@@ -178,4 +242,38 @@ class Egg extends PositionComponent
 
     canvas.restore();
   }
+}
+
+//Helper functions for the fadeout +1 score effect
+mixin HasOpacityProvider on Component implements OpacityProvider {
+  final Paint _paint = BasicPalette.white.paint();
+  final Paint _srcOverPaint = Paint()..blendMode = BlendMode.srcOver;
+
+  @override
+  double get opacity => _paint.color.opacity;
+
+  @override
+  set opacity(double newOpacity) {
+    _paint
+      ..color = _paint.color.withOpacity(newOpacity)
+      ..blendMode = BlendMode.modulate;
+  }
+
+  @override
+  void renderTree(Canvas canvas) {
+    canvas.saveLayer(null, _srcOverPaint);
+    super.renderTree(canvas);
+    canvas.drawPaint(_paint);
+    canvas.restore();
+  }
+}
+
+class CustomTextComponent extends TextComponent with HasOpacityProvider {
+  CustomTextComponent({
+    super.text,
+    super.position,
+    super.anchor,
+    super.textRenderer,
+    super.children,
+  });
 }

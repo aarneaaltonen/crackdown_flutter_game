@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
-import '../crackdown_game.dart';
+import '../controllers/difficulty_controller.dart';
+
 import 'level_selection_screen.dart';
 
 class OverlayScreen extends StatelessWidget {
@@ -17,7 +18,8 @@ class OverlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final game = Get.find<CrackDown>();
+    final difficultyController = Get.find<DifficultyController>();
+
     return Stack(
       children: [
         // Main content centered
@@ -67,15 +69,12 @@ class OverlayScreen extends StatelessWidget {
               color: Colors.black54,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: ValueListenableBuilder<Difficulty>(
-              valueListenable: game.difficultyNotifier,
-              builder: (context, difficulty, _) => Text(
-                'Difficulty: ${difficulty.name}',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                    ),
-              ),
-            ),
+            child: Obx(() => Text(
+                  'Difficulty: ${difficultyController.difficulty.value.name}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                )),
           ).animate().fadeIn(duration: 500.ms),
         ),
       ],

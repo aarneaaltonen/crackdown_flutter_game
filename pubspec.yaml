@@ -38,6 +38,7 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_animate: ^4.5.2
   get: ^4.6.6
+  hive_ce_flutter: ^2.2.0
 
 dev_dependencies:
   flutter_test:

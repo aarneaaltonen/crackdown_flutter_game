@@ -6,14 +6,14 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'components/egg.dart';
 import 'components/play_area.dart';
 import 'config.dart';
+import 'controllers/difficulty_controller.dart';
 
 enum PlayState { welcome, playing, gameOver }
-
-enum Difficulty { easy, medium, hard }
 
 class CrackDown extends FlameGame
     with HasCollisionDetection, KeyboardEvents, TapDetector {
@@ -25,9 +25,10 @@ class CrackDown extends FlameGame
           ),
         );
 
-  final difficultyNotifier = ValueNotifier<Difficulty>(Difficulty.easy);
-  Difficulty get difficulty => difficultyNotifier.value;
-  set difficulty(Difficulty value) => difficultyNotifier.value = value;
+  final Rx<Difficulty> _difficulty = Difficulty.easy.obs;
+  Difficulty get difficulty => _difficulty.value;
+  set difficulty(Difficulty value) => _difficulty.value = value;
+
   final ValueNotifier<int> score = ValueNotifier(0);
   final rand = math.Random();
 
@@ -69,6 +70,7 @@ class CrackDown extends FlameGame
 
   void startGame() {
     if (playState == PlayState.playing) return;
+
     eggRate = 0.001;
     world.removeAll(world.children.query<Egg>());
     score.value = 0;

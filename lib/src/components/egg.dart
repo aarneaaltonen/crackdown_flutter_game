@@ -6,7 +6,10 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../controllers/difficulty_controller.dart';
+import '../controllers/high_score_controller.dart';
 import '../crackdown_game.dart';
 import 'basket.dart';
 
@@ -25,7 +28,6 @@ class Egg extends PositionComponent
   bool _isDragging = false;
   final Vector2 velocity;
   final double baseRadius;
-  Vector2? _dragStartPosition;
   final String eggColor;
 
   double _time = 0;
@@ -51,10 +53,10 @@ class Egg extends PositionComponent
 
   @override
   bool onDragStart(DragStartEvent event) {
-    //TODO: make a basket to drop eggs, dont allow drag from basket
+    if (game.playState != PlayState.playing) return false;
     super.onDragStart(event);
     _isDragging = true;
-    _dragStartPosition = position.clone();
+
     oldVelocity = velocity.clone();
     velocity.setValues(0, 0);
     return true;
@@ -62,6 +64,7 @@ class Egg extends PositionComponent
 
   @override
   bool onDragUpdate(DragUpdateEvent event) {
+    if (game.playState != PlayState.playing) return false;
     if (_isDragging) {
       position += event.localDelta;
     }
@@ -70,6 +73,7 @@ class Egg extends PositionComponent
 
   @override
   bool onDragEnd(DragEndEvent event) {
+    if (!_isDragging) return false;
     super.onDragEnd(event);
     _isDragging = false;
     final baskets = game.children.query<World>().first.children.query<Basket>();
@@ -121,6 +125,14 @@ class Egg extends PositionComponent
           // Wrong basket - increase crack level
           game.playState = PlayState.gameOver;
           velocity.setValues(0, 0);
+
+          // Update high score if necessary
+          final highScoreController = Get.find<HighScoreController>();
+          final difficultyController = Get.find<DifficultyController>();
+          final currentDifficulty = difficultyController.difficulty.value;
+          final currentScore = game.score.value;
+          highScoreController.updateHighScore(currentDifficulty, currentScore);
+
           return true;
         }
       }
@@ -128,6 +140,7 @@ class Egg extends PositionComponent
 
     // Not dropped in basket - resume movement
     velocity.setFrom(oldVelocity);
+
     return true;
   }
 

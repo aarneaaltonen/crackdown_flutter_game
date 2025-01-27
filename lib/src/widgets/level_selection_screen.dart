@@ -1,7 +1,9 @@
+import 'package:crackdown_flutter_game/src/controllers/difficulty_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../controllers/high_score_controller.dart';
 import '../crackdown_game.dart';
 
 class LevelSelectionScreen extends StatelessWidget {
@@ -10,6 +12,10 @@ class LevelSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CrackDown game = Get.find<CrackDown>();
+    final highScoreController = Get.find<HighScoreController>();
+    final DifficultyController difficultyController =
+        Get.find<DifficultyController>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Select Difficulty'),
@@ -28,10 +34,11 @@ class LevelSelectionScreen extends StatelessWidget {
         ),
         itemCount: 3,
         itemBuilder: (context, index) {
-          final level = index + 1;
+          final difficulty = Difficulty.values[index];
           return ElevatedButton(
             onPressed: () {
-              game.difficulty = Difficulty.values[index];
+              game.difficulty = difficulty;
+              difficultyController.changeDifficulty(difficulty);
               Get.back();
             },
             style: ElevatedButton.styleFrom(
@@ -44,17 +51,14 @@ class LevelSelectionScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  Difficulty.values[index].name,
+                  difficulty.name,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    (level / 3).ceil(),
-                    (index) => const Icon(Icons.star, size: 20),
-                  ),
-                ),
+                Obx(() => Text(
+                      'High Score: ${highScoreController.getHighScore(difficulty)}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    )),
               ],
             ),
           )

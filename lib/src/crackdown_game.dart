@@ -99,10 +99,11 @@ class CrackDown extends FlameGame
     startGame();
   }
 
-  double eggRate = 0.001;
+  double eggRate = 0.0015;
   double elapsedTime = 0;
   final double rateIncreaseInterval = 10.0;
   final double maxEggRate = 0.005;
+  int counter = 0;
 
 //in update method, increase egg spawn rate every ten seconds
   @override
@@ -114,10 +115,16 @@ class CrackDown extends FlameGame
 
       // Check if 10 seconds have passed
       if (elapsedTime >= rateIncreaseInterval) {
+        counter++;
         eggRate += 0.0005;
         if (eggRate > maxEggRate) eggRate = maxEggRate;
         elapsedTime = 0; // Reset timer
-        print(eggRate);
+        if (counter > 15) {
+          eggRate = 0.01;
+        }
+        if (counter > 10) {
+          eggRate = 0.006;
+        }
       }
 
       if (rand.nextDouble() < eggRate) {

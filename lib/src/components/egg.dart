@@ -23,7 +23,10 @@ class Egg extends PositionComponent
   }) : super(
           anchor: Anchor.center,
           size: Vector2.all(baseRadius * 2),
-        );
+        ) {
+    // Add a larger hitbox for easier dragging
+    debugMode = true;
+  }
 
   bool _isDragging = false;
   final Vector2 velocity;

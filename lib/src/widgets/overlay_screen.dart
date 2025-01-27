@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../controllers/difficulty_controller.dart';
 
+import 'home_screen.dart';
 import 'level_selection_screen.dart';
 
 class OverlayScreen extends StatelessWidget {
@@ -50,6 +51,18 @@ class OverlayScreen extends StatelessWidget {
                   ),
                   textStyle: Theme.of(context).textTheme.headlineSmall,
                 ),
+                onPressed: () => Get.offAll(() => HomeScreen()),
+                child: const Text("Home"),
+              ).animate().fadeIn(delay: NumDurationExtensions(1).seconds),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  textStyle: Theme.of(context).textTheme.headlineSmall,
+                ),
                 onPressed: () => Get.to(() => const LevelSelectionScreen()),
                 child: const Text("Select Difficulty"),
               ).animate().fadeIn(delay: NumDurationExtensions(1).seconds),
@@ -59,7 +72,7 @@ class OverlayScreen extends StatelessWidget {
         // Difficulty indicator
         Positioned(
           top: 20,
-          right: 20,
+          left: 20,
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 12,
@@ -71,7 +84,7 @@ class OverlayScreen extends StatelessWidget {
             ),
             child: Obx(() => Text(
                   'Difficulty: ${difficultyController.difficulty.value.name}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         color: Colors.white,
                       ),
                 )),

@@ -26,7 +26,8 @@ Good luck and have fun!
 You can choose a difficulty. 
 Reaching a combined highscore of 250 lets you unlock expert difficulty mode.
 
-![pic1](https://github.com/user-attachments/assets/d9de2113-75ae-44fa-ad9e-79354fbdc74b)
+
+<img src="https://github.com/user-attachments/assets/d9de2113-75ae-44fa-ad9e-79354fbdc74b" alt="Screenshot of Crackdown" width="300"/>
 
 
 💣*inspired by a certain  banger of a DS minigame*💣

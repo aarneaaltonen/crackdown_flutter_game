@@ -218,11 +218,15 @@ class Egg extends PositionComponent
         // Base colors
         eggColor == 'blue'
             ? const Color.fromARGB(255, 115, 166, 207) // Blue light
-            : const Color.fromARGB(255, 207, 115, 166), // Pink light
+            : eggColor == 'pink'
+                ? const Color.fromARGB(255, 207, 115, 166) // Pink light
+                : const Color.fromARGB(255, 255, 255, 153), // Yellow light
         // Heavily damaged colors (darker)
         eggColor == 'blue'
             ? const Color.fromARGB(255, 35, 76, 107) // Blue very damaged
-            : const Color.fromARGB(255, 107, 35, 76), // Pink very damaged
+            : eggColor == 'pink'
+                ? const Color.fromARGB(255, 107, 35, 76) // Pink very damaged
+                : const Color.fromARGB(255, 153, 153, 0), // Yellow very damaged
         _crackLevel / 4,
       )!
       ..style = PaintingStyle.fill;
@@ -262,11 +266,17 @@ class Egg extends PositionComponent
         // Base colors
         eggColor == 'blue'
             ? const Color.fromARGB(255, 85, 136, 177) // Blue dark
-            : const Color.fromARGB(255, 177, 85, 136), // Pink dark
+            : eggColor == 'pink'
+                ? const Color.fromARGB(255, 177, 85, 136) // Pink dark
+                : const Color.fromARGB(255, 255, 255, 102), // Yellow dark
         // Heavily damaged colors (darker)
         eggColor == 'blue'
             ? const Color.fromARGB(255, 15, 46, 77) // Blue very damaged dark
-            : const Color.fromARGB(255, 77, 15, 46), // Pink very damaged dark
+            : eggColor == 'pink'
+                ? const Color.fromARGB(
+                    255, 77, 15, 46) // Pink very damaged dark
+                : const Color.fromARGB(
+                    255, 102, 102, 0), // Yellow very damaged dark
         _crackLevel / 4,
       )!
       ..style = PaintingStyle.fill;

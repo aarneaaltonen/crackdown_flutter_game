@@ -54,14 +54,39 @@ class CrackDown extends FlameGame
     camera.viewfinder.anchor = Anchor.topLeft;
 
     world.add(PlayArea());
-    world.add(Basket(
-        position: Vector2(width / 4, height - 50),
-        width: width / 2,
-        eggColor: "pink"));
-    world.add(Basket(
-        position: Vector2(3 * width / 4, height - 50),
-        width: width / 2,
-        eggColor: "blue"));
+    if (difficultyController.difficulty.value == Difficulty.expert) {
+      final basketWidth = width / 3; // Adjust the width as needed
+
+      world.add(Basket(
+        position: Vector2(1 / 2 * basketWidth, height - 50),
+        width: basketWidth,
+        height: basketWidth * 0.8,
+        eggColor: "pink",
+      ));
+      world.add(Basket(
+        position: Vector2(3 / 2 * basketWidth, height - 50),
+        width: basketWidth,
+        height: basketWidth * 0.8,
+        eggColor: "yellow",
+      ));
+      world.add(Basket(
+        position: Vector2(5 / 2 * basketWidth, height - 50),
+        height: basketWidth * 0.8,
+        width: basketWidth,
+        eggColor: "blue",
+      ));
+    } else {
+      world.add(Basket(
+          position: Vector2(width / 4, height - 50),
+          width: width / 2,
+          height: width * 0.28,
+          eggColor: "pink"));
+      world.add(Basket(
+          position: Vector2(3 * width / 4, height - 50),
+          width: width / 2,
+          height: width * 0.28,
+          eggColor: "blue"));
+    }
 
     playState = PlayState.welcome;
   }
@@ -76,13 +101,16 @@ class CrackDown extends FlameGame
 
     switch (difficultyController.difficulty.value) {
       case Difficulty.easy:
-        eggRate = 0.001;
+        eggRate = 0.0015;
         break;
       case Difficulty.medium:
-        eggRate = 0.001;
+        eggRate = 0.0015;
         break;
       case Difficulty.hard:
-        eggRate = 0.001;
+        eggRate = 0.0015;
+        break;
+      case Difficulty.expert:
+        eggRate = 0.003;
         break;
     }
 
@@ -92,12 +120,13 @@ class CrackDown extends FlameGame
     world.add(Pipe(x: -10, y: height / 2 - 200, isTop: false));
 
     if (difficultyController.difficulty.value == Difficulty.hard ||
-        difficultyController.difficulty.value == Difficulty.medium) {
+        difficultyController.difficulty.value == Difficulty.medium ||
+        difficultyController.difficulty.value == Difficulty.expert) {
       //top pipe
       world.add(Pipe(x: width / 2 - 100, y: -10, isTop: true));
     }
 
-    //Heads Up! egg
+    //Heads Up - egg
     world.add(Egg(
         baseRadius: eggRadius,
         position: Vector2(width - 50, height / 2 - 100),
@@ -115,8 +144,28 @@ class CrackDown extends FlameGame
   double eggRate = 0.0015;
   double elapsedTime = 0;
   final double rateIncreaseInterval = 10.0;
-  final double maxEggRate = 0.005;
-  int counter = 0;
+  final double maxEggRate = 0.007;
+  int counter = 13;
+  double oldEggRate = 0.0015;
+  final eggRates = <double>[
+    0.0015,
+    0.002,
+    0.0025,
+    0.003,
+    0.0035,
+    0.002,
+    0.004,
+    0.0045,
+    0.005,
+    0.0055,
+    0.002,
+    0.006,
+    0.007,
+    0.002,
+    0.007,
+    0.002,
+    0.007,
+  ];
 
 //in update method, increase egg spawn rate every ten seconds
   @override
@@ -129,15 +178,17 @@ class CrackDown extends FlameGame
       // Check if 10 seconds have passed
       if (elapsedTime >= rateIncreaseInterval) {
         counter++;
-        eggRate += 0.0005;
-        if (eggRate > maxEggRate) eggRate = maxEggRate;
-        elapsedTime = 0; // Reset timer
-        if (counter > 15) {
-          eggRate = 0.01;
+        //endgame, keep eggrate at max, every second interval give "grace" period to help player
+        if (counter >= eggRates.length) {
+          eggRate = maxEggRate;
+          if (counter % 2 == 0) {
+            eggRate = 0.002;
+          }
+        } else {
+          eggRate = eggRates[counter];
         }
-        if (counter > 10) {
-          eggRate = 0.006;
-        }
+        print("Egg rate: $eggRate");
+        elapsedTime = 0;
       }
 
       if (rand.nextDouble() < eggRate) {
@@ -147,11 +198,18 @@ class CrackDown extends FlameGame
               baseRadius: eggRadius,
               position: Vector2(width - 50, height / 2 - 100),
               velocity: Vector2(
-                  difficultyController.difficulty.value == Difficulty.hard
+                  difficultyController.difficulty.value == Difficulty.hard ||
+                          difficultyController.difficulty.value ==
+                              Difficulty.expert
                       ? -300 + (rand.nextDouble() - 0.5) * 100
                       : -200 + (rand.nextDouble() - 0.5) * 100,
                   (rand.nextDouble() - 0.5) * 500),
-              eggColor: rand.nextBool() ? "pink" : "blue"),
+              eggColor:
+                  difficultyController.difficulty.value == Difficulty.expert
+                      ? (rand.nextInt(3) == 0
+                          ? "yellow"
+                          : (rand.nextBool() ? "pink" : "blue"))
+                      : (rand.nextBool() ? "pink" : "blue")),
         );
       }
       if (rand.nextDouble() < eggRate) {
@@ -161,16 +219,24 @@ class CrackDown extends FlameGame
               baseRadius: eggRadius,
               position: Vector2(50, height / 2 - 100),
               velocity: Vector2(
-                  difficultyController.difficulty.value == Difficulty.hard
+                  difficultyController.difficulty.value == Difficulty.hard ||
+                          difficultyController.difficulty.value ==
+                              Difficulty.expert
                       ? 300 + (rand.nextDouble() - 0.5) * 100
                       : 200 + (rand.nextDouble() - 0.5) * 100,
                   (rand.nextDouble() - 0.5) * 500),
-              eggColor: rand.nextBool() ? "pink" : "blue"),
+              eggColor:
+                  difficultyController.difficulty.value == Difficulty.expert
+                      ? (rand.nextInt(3) == 0
+                          ? "yellow"
+                          : (rand.nextBool() ? "pink" : "blue"))
+                      : (rand.nextBool() ? "pink" : "blue")),
         );
       }
 
       if (difficultyController.difficulty.value == Difficulty.hard ||
-          difficultyController.difficulty.value == Difficulty.medium) {
+          difficultyController.difficulty.value == Difficulty.medium ||
+          difficultyController.difficulty.value == Difficulty.expert) {
         if (rand.nextDouble() < eggRate) {
           //top side "spawner"
           world.add(
@@ -179,10 +245,17 @@ class CrackDown extends FlameGame
                 position: Vector2(width / 2, 50),
                 velocity: Vector2(
                     (rand.nextDouble() - 0.5) * 100,
-                    difficultyController.difficulty.value == Difficulty.hard
+                    difficultyController.difficulty.value == Difficulty.hard ||
+                            difficultyController.difficulty.value ==
+                                Difficulty.expert
                         ? 300 + (rand.nextDouble() - 0.5) * 200
                         : 200 + (rand.nextDouble() - 0.5) * 200),
-                eggColor: rand.nextBool() ? "pink" : "blue"),
+                eggColor:
+                    difficultyController.difficulty.value == Difficulty.expert
+                        ? (rand.nextInt(3) == 0
+                            ? "yellow"
+                            : (rand.nextBool() ? "pink" : "blue"))
+                        : (rand.nextBool() ? "pink" : "blue")),
           );
         }
       }

@@ -10,6 +10,7 @@ class HighScoreController extends GetxController {
     Difficulty.easy: 0,
     Difficulty.medium: 0,
     Difficulty.hard: 0,
+    Difficulty.expert: 0,
   }.obs;
 
   HighScoreController() {
@@ -18,12 +19,14 @@ class HighScoreController extends GetxController {
         Difficulty.easy.toString(): 0,
         Difficulty.medium.toString(): 0,
         Difficulty.hard.toString(): 0,
+        Difficulty.expert.toString(): 0,
       });
     }
     final scores = storage.get("highScores") as Map;
     highScores[Difficulty.easy] = scores[Difficulty.easy.toString()];
     highScores[Difficulty.medium] = scores[Difficulty.medium.toString()];
     highScores[Difficulty.hard] = scores[Difficulty.hard.toString()];
+    highScores[Difficulty.expert] = scores[Difficulty.expert.toString()];
   }
 
   void updateHighScore(Difficulty difficulty, int score) {
@@ -38,6 +41,7 @@ class HighScoreController extends GetxController {
       Difficulty.easy.toString(): highScores[Difficulty.easy],
       Difficulty.medium.toString(): highScores[Difficulty.medium],
       Difficulty.hard.toString(): highScores[Difficulty.hard],
+      Difficulty.expert.toString(): highScores[Difficulty.expert],
     });
   }
 

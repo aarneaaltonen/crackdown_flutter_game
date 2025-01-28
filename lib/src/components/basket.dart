@@ -2,16 +2,16 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../crackdown_game.dart';
-import 'egg.dart';
 
 class Basket extends RectangleComponent
     with CollisionCallbacks, HasGameRef<CrackDown> {
   Basket({
     required super.position,
     required double width,
+    required double height,
     required this.eggColor,
   }) : super(
-          size: Vector2(width, width * 0.6),
+          size: Vector2(width, height),
           anchor: Anchor.bottomCenter,
           children: [RectangleHitbox()],
         );
@@ -23,7 +23,10 @@ class Basket extends RectangleComponent
     final paint = Paint()
       ..color = eggColor == 'blue'
           ? const Color.fromARGB(255, 85, 136, 177)
-          : const Color.fromARGB(255, 177, 85, 136) // Pink basket
+          : eggColor == 'yellow'
+              ? const Color.fromARGB(255, 200, 212, 93)
+              : const Color.fromARGB(255, 177, 85, 136) // Pink basket
+
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
 

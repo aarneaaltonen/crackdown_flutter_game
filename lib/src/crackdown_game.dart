@@ -47,6 +47,33 @@ class CrackDown extends FlameGame
     }
   }
 
+  double eggRate = 0.0015;
+  double elapsedTime = 0;
+  final double rateIncreaseInterval = 10.0;
+  final double maxEggRate = 0.007;
+  int counter = 0;
+
+//TODO: implement different egg rates for different difficulties
+  final eggRates = <double>[
+    0.0015,
+    0.002,
+    0.0025,
+    0.003,
+    0.0035,
+    0.002,
+    0.004,
+    0.002,
+    0.005,
+    0.002,
+    0.006,
+    0.002,
+    0.007,
+    0.002,
+    0.007,
+    0.002,
+    0.007,
+  ];
+
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
@@ -54,41 +81,39 @@ class CrackDown extends FlameGame
     camera.viewfinder.anchor = Anchor.topLeft;
 
     world.add(PlayArea());
-    if (difficultyController.difficulty.value == Difficulty.expert) {
-      final basketWidth = width / 3; // Adjust the width as needed
-
-      world.add(Basket(
-        position: Vector2(1 / 2 * basketWidth, height - 50),
-        width: basketWidth,
-        height: basketWidth * 0.8,
-        eggColor: "pink",
-      ));
-      world.add(Basket(
-        position: Vector2(3 / 2 * basketWidth, height - 50),
-        width: basketWidth,
-        height: basketWidth * 0.8,
-        eggColor: "yellow",
-      ));
-      world.add(Basket(
-        position: Vector2(5 / 2 * basketWidth, height - 50),
-        height: basketWidth * 0.8,
-        width: basketWidth,
-        eggColor: "blue",
-      ));
-    } else {
-      world.add(Basket(
-          position: Vector2(width / 4, height - 50),
-          width: width / 2,
-          height: width * 0.28,
-          eggColor: "pink"));
-      world.add(Basket(
-          position: Vector2(3 * width / 4, height - 50),
-          width: width / 2,
-          height: width * 0.28,
-          eggColor: "blue"));
-    }
-
+    _addBaskets();
     playState = PlayState.welcome;
+  }
+
+  void _addBaskets() {
+    final basketWidth =
+        difficultyController.difficulty.value == Difficulty.expert
+            ? width / 3
+            : width / 2;
+
+    final baskets = [
+      if (difficultyController.difficulty.value == Difficulty.expert)
+        ...List.generate(
+            3,
+            (index) => Basket(
+                  position:
+                      Vector2((2 * index + 1) / 2 * basketWidth, height - 50),
+                  width: basketWidth,
+                  height: basketWidth * 0.8,
+                  eggColor: ["pink", "yellow", "blue"][index],
+                ))
+      else
+        ...List.generate(
+            2,
+            (index) => Basket(
+                  position: Vector2((2 * index + 1) * width / 4, height - 50),
+                  width: basketWidth,
+                  height: width * 0.28,
+                  eggColor: ["pink", "blue"][index],
+                ))
+    ];
+
+    world.addAll(baskets);
   }
 
   void startGame() {
@@ -99,13 +124,16 @@ class CrackDown extends FlameGame
     score.value = 0;
     playState = PlayState.playing;
 
+    _setEggRateBasedOnDifficulty();
+    _addPipes();
+    //heads up! - egg
+    _addInitialEgg();
+  }
+
+  void _setEggRateBasedOnDifficulty() {
     switch (difficultyController.difficulty.value) {
       case Difficulty.easy:
-        eggRate = 0.0015;
-        break;
       case Difficulty.medium:
-        eggRate = 0.0015;
-        break;
       case Difficulty.hard:
         eggRate = 0.0015;
         break;
@@ -113,26 +141,27 @@ class CrackDown extends FlameGame
         eggRate = 0.002;
         break;
     }
+  }
 
-    //right pipe
+  void _addPipes() {
     world.add(Pipe(x: width - 10, y: height / 2 - 200, isTop: false));
-    //left pipe
     world.add(Pipe(x: -10, y: height / 2 - 200, isTop: false));
 
     if (difficultyController.difficulty.value == Difficulty.hard ||
         difficultyController.difficulty.value == Difficulty.medium ||
         difficultyController.difficulty.value == Difficulty.expert) {
-      //top pipe
       world.add(Pipe(x: width / 2 - 100, y: -10, isTop: true));
     }
+  }
 
-    //Heads Up - egg
+  void _addInitialEgg() {
     world.add(Egg(
-        baseRadius: eggRadius,
-        position: Vector2(width - 50, height / 2 - 100),
-        velocity: Vector2(-200 + (rand.nextDouble() - 0.5) * 100,
-            (rand.nextDouble() - 0.5) * 100),
-        eggColor: rand.nextBool() ? "pink" : "blue"));
+      baseRadius: eggRadius,
+      position: Vector2(width - 50, height / 2 - 100),
+      velocity: Vector2(-200 + (rand.nextDouble() - 0.5) * 100,
+          (rand.nextDouble() - 0.5) * 100),
+      eggColor: rand.nextBool() ? "pink" : "blue",
+    ));
   }
 
   @override
@@ -141,35 +170,7 @@ class CrackDown extends FlameGame
     startGame();
   }
 
-  double eggRate = 0.0015;
-  double elapsedTime = 0;
-  final double rateIncreaseInterval = 10.0;
-  final double maxEggRate = 0.007;
-  int counter = 0;
-
-//TODO: make list of egg rates for each difficulty
-//store somewhere else
-  final eggRates = <double>[
-    0.0015,
-    0.002,
-    0.0025,
-    0.003,
-    0.0035,
-    0.002,
-    0.004,
-    0.0045,
-    0.005,
-    0.0055,
-    0.002,
-    0.006,
-    0.007,
-    0.002,
-    0.007,
-    0.002,
-    0.007,
-  ];
-
-// update method, spawns eggs at increasing rate
+//main game loop, randomly spawn egg at an increasing rate
   @override
   void update(double dt) {
     super.update(dt);
@@ -177,10 +178,8 @@ class CrackDown extends FlameGame
     if (playState == PlayState.playing) {
       elapsedTime += dt;
 
-      // Check if 10 seconds have passed
       if (elapsedTime >= rateIncreaseInterval) {
         counter++;
-        //endgame, keep eggrate at max, every second interval give "grace" period to help player
         if (counter >= eggRates.length) {
           eggRate = maxEggRate;
           if (counter % 2 == 0) {
@@ -189,78 +188,63 @@ class CrackDown extends FlameGame
         } else {
           eggRate = eggRates[counter];
         }
-        print("Egg rate: $eggRate");
         elapsedTime = 0;
       }
 
-      if (rand.nextDouble() < eggRate) {
-        //right side "spawner"
-        world.add(
-          Egg(
-              baseRadius: eggRadius,
-              position: Vector2(width - 50, height / 2 - 100),
-              velocity: Vector2(
-                  difficultyController.difficulty.value == Difficulty.hard ||
-                          difficultyController.difficulty.value ==
-                              Difficulty.expert
-                      ? -300 + (rand.nextDouble() - 0.5) * 100
-                      : -200 + (rand.nextDouble() - 0.5) * 100,
-                  (rand.nextDouble() - 0.5) * 500),
-              eggColor:
-                  difficultyController.difficulty.value == Difficulty.expert
-                      ? (rand.nextInt(3) == 0
-                          ? "yellow"
-                          : (rand.nextBool() ? "pink" : "blue"))
-                      : (rand.nextBool() ? "pink" : "blue")),
-        );
-      }
-      if (rand.nextDouble() < eggRate) {
-        //left side "spawner"
-        world.add(
-          Egg(
-              baseRadius: eggRadius,
-              position: Vector2(50, height / 2 - 100),
-              velocity: Vector2(
-                  difficultyController.difficulty.value == Difficulty.hard ||
-                          difficultyController.difficulty.value ==
-                              Difficulty.expert
-                      ? 300 + (rand.nextDouble() - 0.5) * 100
-                      : 200 + (rand.nextDouble() - 0.5) * 100,
-                  (rand.nextDouble() - 0.5) * 500),
-              eggColor:
-                  difficultyController.difficulty.value == Difficulty.expert
-                      ? (rand.nextInt(3) == 0
-                          ? "yellow"
-                          : (rand.nextBool() ? "pink" : "blue"))
-                      : (rand.nextBool() ? "pink" : "blue")),
-        );
-      }
+      _spawnEggs();
+    }
+  }
 
-      if (difficultyController.difficulty.value == Difficulty.hard ||
-          difficultyController.difficulty.value == Difficulty.medium ||
-          difficultyController.difficulty.value == Difficulty.expert) {
-        if (rand.nextDouble() < eggRate) {
-          //top side "spawner"
-          world.add(
-            Egg(
-                baseRadius: eggRadius,
-                position: Vector2(width / 2, 50),
-                velocity: Vector2(
-                    (rand.nextDouble() - 0.5) * 100,
-                    difficultyController.difficulty.value == Difficulty.hard ||
-                            difficultyController.difficulty.value ==
-                                Difficulty.expert
-                        ? 300 + (rand.nextDouble() - 0.5) * 200
-                        : 200 + (rand.nextDouble() - 0.5) * 200),
-                eggColor:
-                    difficultyController.difficulty.value == Difficulty.expert
-                        ? (rand.nextInt(3) == 0
-                            ? "yellow"
-                            : (rand.nextBool() ? "pink" : "blue"))
-                        : (rand.nextBool() ? "pink" : "blue")),
-          );
-        }
+  void _spawnEggs() {
+    if (rand.nextDouble() < eggRate) {
+      _spawnEgg(Vector2(width - 50, height / 2 - 100), "right");
+    }
+    if (rand.nextDouble() < eggRate) {
+      _spawnEgg(Vector2(50, height / 2 - 100), "left");
+    }
+    if (difficultyController.difficulty.value == Difficulty.hard ||
+        difficultyController.difficulty.value == Difficulty.medium ||
+        difficultyController.difficulty.value == Difficulty.expert) {
+      if (rand.nextDouble() < eggRate) {
+        _spawnEgg(Vector2(width / 2, 50), "top");
       }
+    }
+  }
+
+  void _spawnEgg(Vector2 position, String spawnSide) {
+    final isHardOrExpert =
+        difficultyController.difficulty.value == Difficulty.hard ||
+            difficultyController.difficulty.value == Difficulty.expert;
+    final velocity = Vector2(
+      spawnSide == "right"
+          ? isHardOrExpert
+              ? -300 + (rand.nextDouble() - 0.5) * 100
+              : -200 + (rand.nextDouble() - 0.5) * 100
+          : spawnSide == "left"
+              ? isHardOrExpert
+                  ? 300 + (rand.nextDouble() - 0.5) * 100
+                  : 200 + (rand.nextDouble() - 0.5) * 100
+              : (rand.nextDouble() - 0.5) * 100,
+      spawnSide == "top"
+          ? isHardOrExpert
+              ? 300 + (rand.nextDouble() - 0.5) * 200
+              : 200 + (rand.nextDouble() - 0.5) * 200
+          : (rand.nextDouble() - 0.5) * 500,
+    );
+
+    world.add(Egg(
+      baseRadius: eggRadius,
+      position: position,
+      velocity: velocity,
+      eggColor: _getRandomEggColor(),
+    ));
+  }
+
+  String _getRandomEggColor() {
+    if (difficultyController.difficulty.value == Difficulty.expert) {
+      return ["yellow", "pink", "blue"][rand.nextInt(3)];
+    } else {
+      return rand.nextBool() ? "pink" : "blue";
     }
   }
 

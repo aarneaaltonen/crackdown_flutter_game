@@ -25,22 +25,20 @@ class Basket extends RectangleComponent
           ? const Color.fromARGB(255, 85, 136, 177)
           : eggColor == 'yellow'
               ? const Color.fromARGB(255, 200, 212, 93)
-              : const Color.fromARGB(255, 177, 85, 136) // Pink basket
-
+              : const Color.fromARGB(255, 177, 85, 136)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
 
     // Draw basket shape
     final path = Path()
-      ..moveTo(0, 0) // Start at top-left
-      ..lineTo(0, size.y) // Left side
-      ..lineTo(size.x, size.y) // Bottom
-      ..lineTo(size.x, 0) // Right side
-      ..close(); // Back to top-left
+      ..moveTo(0, 0)
+      ..lineTo(0, size.y)
+      ..lineTo(size.x, size.y)
+      ..lineTo(size.x, 0)
+      ..close();
 
     canvas.drawPath(path, paint);
 
-    // Fill color
     paint.style = PaintingStyle.fill;
     paint.color = paint.color.withAlpha(100);
     canvas.drawPath(path, paint);

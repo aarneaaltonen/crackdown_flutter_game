@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import '../controllers/difficulty_controller.dart';
 
 import 'home_screen.dart';
-import 'level_selection_screen.dart';
 
 class OverlayScreen extends StatelessWidget {
   const OverlayScreen({
@@ -63,7 +62,7 @@ class OverlayScreen extends StatelessWidget {
                   ),
                   textStyle: Theme.of(context).textTheme.headlineSmall,
                 ),
-                onPressed: () => Get.to(() => const LevelSelectionScreen()),
+                onPressed: () => Get.toNamed('/LevelSelectionScreen'),
                 child: const Text("Select Difficulty"),
               ).animate().fadeIn(delay: NumDurationExtensions(1).seconds),
             ],

@@ -25,13 +25,14 @@ class Egg extends PositionComponent
           size: Vector2.all(baseRadius * 2),
         );
 
+  final difficultyController = Get.find<DifficultyController>();
+
   bool _isDragging = false;
   final Vector2 velocity;
   final double baseRadius;
   final String eggColor;
 
-  //broken bool is used to show the player which egg got them out
-  bool broken = false;
+  bool broken = false; // Indicates if the egg is broken
 
   double _time = 0;
   final double _wobbleFrequency = 5;
@@ -44,21 +45,26 @@ class Egg extends PositionComponent
   Vector2 oldVelocity = Vector2.zero();
 
   void increaseCrackLevel() {
-    if (_crackLevel < 4) {
-      if (!_isDragging) {
-        _crackLevel++;
-      }
-    } else {
-      if (game.playState == PlayState.playing) {
-        broken = true;
-      }
-      game.playState = PlayState.gameOver;
-      final highScoreController = Get.find<HighScoreController>();
-      final difficultyController = Get.find<DifficultyController>();
-      final currentDifficulty = difficultyController.difficulty.value;
-      final currentScore = game.score.value;
-      highScoreController.updateHighScore(currentDifficulty, currentScore);
+    if (_crackLevel < 4 && !_isDragging) {
+      _crackLevel++;
+    } else if (_crackLevel >= 4) {
+      _handleGameOver();
     }
+  }
+
+  void _handleGameOver() {
+    if (game.playState == PlayState.playing) {
+      broken = true;
+      game.playState = PlayState.gameOver;
+      _updateHighScore();
+    }
+  }
+
+  void _updateHighScore() {
+    final highScoreController = Get.find<HighScoreController>();
+    final currentDifficulty = difficultyController.difficulty.value;
+    final currentScore = game.score.value;
+    highScoreController.updateHighScore(currentDifficulty, currentScore);
   }
 
   @override
@@ -86,74 +92,76 @@ class Egg extends PositionComponent
     if (!_isDragging) return false;
     super.onDragEnd(event);
     _isDragging = false;
+
     final baskets = game.children.query<World>().first.children.query<Basket>();
 
     for (final basket in baskets) {
       if (basket.containsPoint(position)) {
         if (basket.eggColor == eggColor) {
-          // Correct basket - remove egg
-          game.score.value++;
-          removeFromParent();
-//+1effect
-          final scoreText = CustomTextComponent(
-            text: '+1',
-            position: position.clone(),
-            anchor: Anchor.center,
-            textRenderer: TextPaint(
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-
-          scoreText
-            ..add(
-              MoveByEffect(
-                Vector2(0, -50),
-                EffectController(
-                  duration: 0.5,
-                  curve: Curves.easeOut,
-                ),
-              ),
-            )
-            ..add(
-              OpacityEffect.fadeOut(
-                EffectController(
-                  duration: 0.5,
-                ),
-              )..onComplete = () {
-                  scoreText.removeFromParent();
-                },
-            );
-
-          game.world.add(scoreText);
-
+          _handleCorrectBasket();
           return true;
         } else {
-          // Wrong basket - game over
-          game.playState = PlayState.gameOver;
-          velocity.setValues(0, 0);
-          broken = true;
-
-          // Update high score if necessary
-          final highScoreController = Get.find<HighScoreController>();
-          final difficultyController = Get.find<DifficultyController>();
-          final currentDifficulty = difficultyController.difficulty.value;
-          final currentScore = game.score.value;
-          highScoreController.updateHighScore(currentDifficulty, currentScore);
+          _handleWrongBasket();
           return true;
         }
       }
     }
 
-    // Not dropped in basket - resume movement
     velocity.setFrom(oldVelocity);
-
     return true;
   }
 
+  void _handleCorrectBasket() {
+    game.score.value++;
+    removeFromParent();
+    _addScoreTextEffect();
+  }
+
+  void _handleWrongBasket() {
+    game.playState = PlayState.gameOver;
+    velocity.setValues(0, 0);
+    broken = true;
+    _updateHighScore();
+  }
+
+  void _addScoreTextEffect() {
+    final scoreText = CustomTextComponent(
+      text: '+1',
+      position: position.clone(),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 50,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    scoreText
+      ..add(
+        MoveByEffect(
+          Vector2(0, -50),
+          EffectController(
+            duration: 0.5,
+            curve: Curves.easeOut,
+          ),
+        ),
+      )
+      ..add(
+        OpacityEffect.fadeOut(
+          EffectController(
+            duration: 0.5,
+          ),
+        )..onComplete = () {
+            scoreText.removeFromParent();
+          },
+      );
+
+    game.world.add(scoreText);
+  }
+
+  // egg-like movement
   @override
   void update(double dt) {
     super.update(dt);
@@ -190,6 +198,7 @@ class Egg extends PositionComponent
     }
   }
 
+  //match movement animation
   @override
   void render(Canvas canvas) {
     super.render(canvas);
@@ -212,30 +221,10 @@ class Egg extends PositionComponent
       height: height,
     );
 
-    // Lighter side of egg
-    final paintLight = Paint()
-      ..color = Color.lerp(
-        // Base colors
-        eggColor == 'blue'
-            ? const Color.fromARGB(255, 115, 166, 207) // Blue light
-            : eggColor == 'pink'
-                ? const Color.fromARGB(255, 207, 115, 166) // Pink light
-                : const Color.fromARGB(255, 255, 255, 153), // Yellow light
-        // Heavily damaged colors (darker)
-        eggColor == 'blue'
-            ? const Color.fromARGB(255, 35, 76, 107) // Blue very damaged
-            : eggColor == 'pink'
-                ? const Color.fromARGB(255, 107, 35, 76) // Pink very damaged
-                : const Color.fromARGB(255, 153, 153, 0), // Yellow very damaged
-        _crackLevel / 4,
-      )!
-      ..style = PaintingStyle.fill;
-
+    final paintLight = _getPaintLight();
     canvas.drawOval(rect, paintLight);
 
     if ((_crackLevel == 4 && PlayState.playing == game.playState) || broken) {
-      //this also makes it easier to distinguish which egg got the player out
-      //about to break warning
       final outlinePaint = Paint()
         ..color = const Color.fromARGB(255, 255, 0, 0)
         ..style = PaintingStyle.stroke
@@ -243,51 +232,99 @@ class Egg extends PositionComponent
       canvas.drawOval(rect, outlinePaint);
     }
 
-    final clipPath = Path();
+    final clipPath = _getClipPath(rollAngle, width, height);
+    canvas.clipPath(clipPath);
+
+    final paintDark = _getPaintDark();
+    canvas.drawOval(rect, paintDark);
+
+    canvas.restore();
+  }
+
+  Paint _getPaintLight() {
+    return Paint()
+      ..color = Color.lerp(
+        _getBaseColorLight(),
+        _getDamagedColorLight(),
+        _crackLevel / 4,
+      )!
+      ..style = PaintingStyle.fill;
+  }
+
+  Paint _getPaintDark() {
+    return Paint()
+      ..color = Color.lerp(
+        _getBaseColorDark(),
+        _getDamagedColorDark(),
+        _crackLevel / 4,
+      )!
+      ..style = PaintingStyle.fill;
+  }
+
+  Color _getBaseColorLight() {
+    switch (eggColor) {
+      case 'blue':
+        return const Color.fromARGB(255, 115, 166, 207);
+      case 'pink':
+        return const Color.fromARGB(255, 207, 115, 166);
+      default:
+        return const Color.fromARGB(255, 219, 219, 135);
+    }
+  }
+
+  Color _getDamagedColorLight() {
+    switch (eggColor) {
+      case 'blue':
+        return const Color.fromARGB(255, 35, 76, 107);
+      case 'pink':
+        return const Color.fromARGB(255, 107, 35, 76);
+      default:
+        return const Color.fromARGB(255, 153, 153, 0);
+    }
+  }
+
+  Color _getBaseColorDark() {
+    switch (eggColor) {
+      case 'blue':
+        return const Color.fromARGB(255, 85, 136, 177);
+      case 'pink':
+        return const Color.fromARGB(255, 177, 85, 136);
+      default:
+        return const Color.fromARGB(255, 255, 255, 102);
+    }
+  }
+
+  Color _getDamagedColorDark() {
+    switch (eggColor) {
+      case 'blue':
+        return const Color.fromARGB(255, 15, 46, 77);
+      case 'pink':
+        return const Color.fromARGB(255, 77, 15, 46);
+      default:
+        return const Color.fromARGB(255, 102, 102, 0);
+    }
+  }
+
+  Path _getClipPath(double rollAngle, double width, double height) {
     final splitOffset = sin(rollAngle) * width * 0.8;
 
-    clipPath
+    return Path()
       ..moveTo(splitOffset * 0.7, -height / 2)
       ..lineTo(width * 0.8, -height / 2)
       ..cubicTo(width, -height / 3, width, height / 3, width * 0.9, height / 2)
       ..lineTo(splitOffset, height / 2)
       ..cubicTo(
-          splitOffset - width * 0.2,
-          height / 3,
-          splitOffset - width * 0.1,
-          -height / 3,
-          splitOffset * 0.7,
-          -height / 2);
-
-    canvas.clipPath(clipPath);
-
-    final paintDark = Paint()
-      ..color = Color.lerp(
-        // Base colors
-        eggColor == 'blue'
-            ? const Color.fromARGB(255, 85, 136, 177) // Blue dark
-            : eggColor == 'pink'
-                ? const Color.fromARGB(255, 177, 85, 136) // Pink dark
-                : const Color.fromARGB(255, 255, 255, 102), // Yellow dark
-        // Heavily damaged colors (darker)
-        eggColor == 'blue'
-            ? const Color.fromARGB(255, 15, 46, 77) // Blue very damaged dark
-            : eggColor == 'pink'
-                ? const Color.fromARGB(
-                    255, 77, 15, 46) // Pink very damaged dark
-                : const Color.fromARGB(
-                    255, 102, 102, 0), // Yellow very damaged dark
-        _crackLevel / 4,
-      )!
-      ..style = PaintingStyle.fill;
-
-    canvas.drawOval(rect, paintDark);
-
-    canvas.restore();
+        splitOffset - width * 0.2,
+        height / 3,
+        splitOffset - width * 0.1,
+        -height / 3,
+        splitOffset * 0.7,
+        -height / 2,
+      );
   }
 }
 
-//Helper functions for the fadeout +1 score effect
+// +1 animation helper functions
 mixin HasOpacityProvider on Component implements OpacityProvider {
   final Paint _paint = BasicPalette.white.paint();
   final Paint _srcOverPaint = Paint()..blendMode = BlendMode.srcOver;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'level_selection_screen.dart';
 import '../config.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -30,7 +29,7 @@ class HomeScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.menu),
                     onPressed: () {
-                      Get.to(() => LevelSelectionScreen());
+                      Get.toNamed('/LevelSelectionScreen');
                     },
                     tooltip: 'Difficulty Selection',
                   ),
@@ -87,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      Get.to(() => LevelSelectionScreen());
+                      Get.toNamed('/LevelSelectionScreen');
                     },
                     child: const Text('Difficulty selection'),
                   ),

@@ -31,7 +31,7 @@ class LevelSelectionScreen extends StatelessWidget {
             highScoreController.getHighScore(Difficulty.hard);
 
     // Check if Expert difficulty should be locked
-    final isExpertLocked = combinedHighScore < 2;
+    final isExpertLocked = combinedHighScore < 250;
 
     return Scaffold(
         appBar: AppBar(

@@ -29,6 +29,15 @@ class _GameAppState extends State<GameApp> {
     game = CrackDown();
   }
 
+  //check if current score matches high score, ie it was updated
+  //since highscore state is updated earlier it says high score even if you match it, easy fix, but not priority
+  bool isNewHighScore() {
+    final currentDifficulty = difficultyController.difficulty.value;
+    final currentScore = game.score.value;
+    final highScore = highScoreController.highScores[currentDifficulty] ?? 0;
+    return currentScore == highScore;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,11 +78,14 @@ class _GameAppState extends State<GameApp> {
                                     subtitle: 'High score: $highScore\n\n',
                                   );
                                 }),
-                            PlayState.gameOver.name: (context, game) =>
-                                OverlayScreen(
-                                  title: 'G A M E   O V E R',
-                                  subtitle: 'Tap to Play Again\n\n',
-                                ),
+                            PlayState.gameOver.name: (context, game) => Obx(() {
+                                  bool newHighScore = isNewHighScore();
+                                  return OverlayScreen(
+                                    title: 'G A M E   O V E R',
+                                    subtitle:
+                                        'Tap to Play Again\n\n${newHighScore ? ' New High Score!\n\n' : ''}',
+                                  );
+                                }),
                           },
                         ),
                       ),

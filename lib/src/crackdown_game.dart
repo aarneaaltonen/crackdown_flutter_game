@@ -110,7 +110,7 @@ class CrackDown extends FlameGame
         eggRate = 0.0015;
         break;
       case Difficulty.expert:
-        eggRate = 0.003;
+        eggRate = 0.002;
         break;
     }
 
@@ -145,8 +145,10 @@ class CrackDown extends FlameGame
   double elapsedTime = 0;
   final double rateIncreaseInterval = 10.0;
   final double maxEggRate = 0.007;
-  int counter = 13;
-  double oldEggRate = 0.0015;
+  int counter = 0;
+
+//TODO: make list of egg rates for each difficulty
+//store somewhere else
   final eggRates = <double>[
     0.0015,
     0.002,
@@ -167,7 +169,7 @@ class CrackDown extends FlameGame
     0.007,
   ];
 
-//in update method, increase egg spawn rate every ten seconds
+// update method, spawns eggs at increasing rate
   @override
   void update(double dt) {
     super.update(dt);

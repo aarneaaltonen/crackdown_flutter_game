@@ -23,15 +23,15 @@ class Egg extends PositionComponent
   }) : super(
           anchor: Anchor.center,
           size: Vector2.all(baseRadius * 2),
-        ) {
-    // Add a larger hitbox for easier dragging
-    debugMode = true;
-  }
+        );
 
   bool _isDragging = false;
   final Vector2 velocity;
   final double baseRadius;
   final String eggColor;
+
+  //broken bool is used to show the player which egg got them out
+  bool broken = false;
 
   double _time = 0;
   final double _wobbleFrequency = 5;
@@ -49,6 +49,9 @@ class Egg extends PositionComponent
         _crackLevel++;
       }
     } else {
+      if (game.playState == PlayState.playing) {
+        broken = true;
+      }
       game.playState = PlayState.gameOver;
       final highScoreController = Get.find<HighScoreController>();
       final difficultyController = Get.find<DifficultyController>();
@@ -129,9 +132,10 @@ class Egg extends PositionComponent
 
           return true;
         } else {
-          // Wrong basket - increase crack level
+          // Wrong basket - game over
           game.playState = PlayState.gameOver;
           velocity.setValues(0, 0);
+          broken = true;
 
           // Update high score if necessary
           final highScoreController = Get.find<HighScoreController>();
@@ -139,7 +143,6 @@ class Egg extends PositionComponent
           final currentDifficulty = difficultyController.difficulty.value;
           final currentScore = game.score.value;
           highScoreController.updateHighScore(currentDifficulty, currentScore);
-
           return true;
         }
       }
@@ -209,7 +212,7 @@ class Egg extends PositionComponent
       height: height,
     );
 
-//lighter side of egg
+    // Lighter side of egg
     final paintLight = Paint()
       ..color = Color.lerp(
         // Base colors
@@ -225,6 +228,16 @@ class Egg extends PositionComponent
       ..style = PaintingStyle.fill;
 
     canvas.drawOval(rect, paintLight);
+
+    if ((_crackLevel == 4 && PlayState.playing == game.playState) || broken) {
+      //this also makes it easier to distinguish which egg got the player out
+      //about to break warning
+      final outlinePaint = Paint()
+        ..color = const Color.fromARGB(255, 255, 0, 0)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 7.0;
+      canvas.drawOval(rect, outlinePaint);
+    }
 
     final clipPath = Path();
     final splitOffset = sin(rollAngle) * width * 0.8;

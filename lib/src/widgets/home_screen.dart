@@ -5,14 +5,16 @@ import 'level_selection_screen.dart';
 import '../config.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MediaQuery.of(context).size.width >= BreakPoints.small
           ? AppBar(
-              title: const Text('Crackdown'),
+              title: Center(child: const Text('Crackdown')),
             )
-          : null, // Hide AppBar for small screens
+          : null,
       bottomNavigationBar: MediaQuery.of(context).size.width < BreakPoints.small
           ? BottomAppBar(
               child: Row(
@@ -21,7 +23,6 @@ class HomeScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.play_arrow),
                     onPressed: () {
-                      // Navigate to the game screen
                       Get.toNamed('/game');
                     },
                     tooltip: 'Play',
@@ -29,7 +30,6 @@ class HomeScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.menu),
                     onPressed: () {
-                      // Navigate to the difficulty selection screen
                       Get.to(() => LevelSelectionScreen());
                     },
                     tooltip: 'Difficulty Selection',
@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             )
-          : null, // Hide BottomAppBar for larger screens
+          : null,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -51,11 +51,9 @@ class HomeScreen extends StatelessWidget {
         ),
         child: Center(
           child: SingleChildScrollView(
-            // Ensure no overflow on small screens
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                // Section for game instructions
                 Container(
                   margin: const EdgeInsets.all(16.0),
                   padding: const EdgeInsets.all(16.0),
@@ -79,11 +77,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 if (MediaQuery.of(context).size.width >= BreakPoints.small) ...[
-                  // Show buttons for larger screens
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to the game screen
                       Get.toNamed('/game');
                     },
                     child: const Text('Play'),
@@ -91,7 +87,6 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to the difficulty selection screen
                       Get.to(() => LevelSelectionScreen());
                     },
                     child: const Text('Difficulty selection'),

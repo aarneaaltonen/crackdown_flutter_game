@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:crackdown_flutter_game/src/components/basket.dart';
+import 'package:crackdown_flutter_game/src/components/pipe.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
@@ -85,9 +86,21 @@ class CrackDown extends FlameGame
         break;
     }
 
+    //right pipe
+    world.add(Pipe(x: width - 10, y: height / 2 - 200, isTop: false));
+    //left pipe
+    world.add(Pipe(x: -10, y: height / 2 - 200, isTop: false));
+
+    if (difficultyController.difficulty.value == Difficulty.hard ||
+        difficultyController.difficulty.value == Difficulty.medium) {
+      //top pipe
+      world.add(Pipe(x: width / 2 - 100, y: -10, isTop: true));
+    }
+
+    //Heads Up! egg
     world.add(Egg(
         baseRadius: eggRadius,
-        position: Vector2(width - 50, height / 2),
+        position: Vector2(width - 50, height / 2 - 100),
         velocity: Vector2(-200 + (rand.nextDouble() - 0.5) * 100,
             (rand.nextDouble() - 0.5) * 100),
         eggColor: rand.nextBool() ? "pink" : "blue"));
@@ -132,7 +145,7 @@ class CrackDown extends FlameGame
         world.add(
           Egg(
               baseRadius: eggRadius,
-              position: Vector2(width - 50, height / 2),
+              position: Vector2(width - 50, height / 2 - 100),
               velocity: Vector2(
                   difficultyController.difficulty.value == Difficulty.hard
                       ? -300 + (rand.nextDouble() - 0.5) * 100
@@ -146,11 +159,11 @@ class CrackDown extends FlameGame
         world.add(
           Egg(
               baseRadius: eggRadius,
-              position: Vector2(50, height / 2),
+              position: Vector2(50, height / 2 - 100),
               velocity: Vector2(
                   difficultyController.difficulty.value == Difficulty.hard
-                      ? -300 + (rand.nextDouble() - 0.5) * 100
-                      : -200 + (rand.nextDouble() - 0.5) * 100,
+                      ? 300 + (rand.nextDouble() - 0.5) * 100
+                      : 200 + (rand.nextDouble() - 0.5) * 100,
                   (rand.nextDouble() - 0.5) * 500),
               eggColor: rand.nextBool() ? "pink" : "blue"),
         );
